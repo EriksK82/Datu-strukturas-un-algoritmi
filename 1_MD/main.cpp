@@ -52,8 +52,8 @@ public:
                 vector<string> subData(initialdata.begin(), initialdata.begin() + size);
 
                 double ascendingTime = measureSortingTime([this, &subData]() { return sorter_.sortAscending(subData); });
-                double descendingTime = measureSortingTime([this, &subData]() { return sorter_.sortDescending(subData); });
-                double unsortedTime = measureSortingTime([this, &subData]() { return sorter_.sortDescending(subData); });
+                double descendingTime = measureSortingTime([this, &subData]() { return sorter_.sortAscending(subData); });
+                double unsortedTime = measureSortingTime([this, &subData]() { return sorter_.sortAscending(subData); });
 
                 outputFile << size << "," << ascendingTime << "," << descendingTime << "," << unsortedTime << endl;
             }
