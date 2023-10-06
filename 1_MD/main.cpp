@@ -31,7 +31,7 @@ public:
         int n = data.size();
         for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - i - 1; j++) {
-                if (data[j] < data[j + 1]) { // < lai apgrieztu visu algoritmu otrādi
+                if (data[j] < data[j + 1]) { // < lai apgrieztu visu algoritmu otrādi iegūtu Descending
                     swap(data[j], data[j + 1]);
                 }
             }
@@ -67,20 +67,20 @@ public:
 
                 // (Ascending datu) šīrošanas algoritms
                 vector<string> ascendingData_ = subData; // pārdefinējam-pieķiram datu fragmentam vērtību
-                double ascendingTime = measureSortingTime([&sorter, &ascendingData_]() {// izsaucam laika mērīšanas funkciju, lai nomērītu laiku cik ilgi proces aizņem
-                return sorter.bubbleSortAscending(ascendingData_);// izsaucam iepriekš izveidoto sorteru un norādam uz šķirojamajiem datiem
+                double ascendingTime = measureSortingTime([&sorter, &ascendingData_]() {// izsaucam laika mērīšanas funkciju, lai nomērītu laiku cik ilgi proces aizņem aktivējas kad izsaucas sortes un nosauktie dati
+                sorter.bubbleSortAscending(ascendingData_);// izsaucam iepriekš izveidoto sorteru un norādam uz šķirojamajiem datiem
                 });
 
                 // (Decending datu) šīrošanas algoritms
                 vector<string> descendingData_ = subData;
                 double descendingTime = measureSortingTime([&sorter, &descendingData_]() {
-                return sorter.bubbleSortAscending(descendingData_);
+                sorter.bubbleSortAscending(descendingData_);
                 });
 
                 // (unsorted datu) šīrošanas algoritms
                 vector<string> unsortedData_ = subData;
                 double unsortedTime = measureSortingTime([&sorter, &unsortedData_]() {
-                return sorter.bubbleSortAscending(unsortedData_);
+                sorter.bubbleSortAscending(unsortedData_);
                 }); 
 
                 outputFile << size << "," << ascendingTime << "," << descendingTime << "," << unsortedTime << endl;// definējam datu kārtošanas struktūru failā
@@ -140,8 +140,7 @@ int main() {
     CSVProcessor processor("initial_data.csv", "output_data.csv");//ievadu izejas datus un vēlamo izejas faila nosaukumu
     processor.process();//palaižu šķirošanas procesu
 
-    //// tādus var likt cik nepieciešams ar daždiem sākotnējo datu faila nosaukumiem un izejas datu nosaukumiem............
-
+    
 
     return 0;
 }
