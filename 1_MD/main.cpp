@@ -65,31 +65,31 @@ public:
             for (int size : sizes) {//uzsākam secīgu šķirošanas ciklu par parametriem izmantojot "Size"
                 vector<string> subData(initialData_.begin(), initialData_.begin() + size);// definējas datu apmēru (n)
 
-                // Labākā (Ascending datu) šīrošanas algoritms
+                // (Ascending datu) šīrošanas algoritms
                 vector<string> ascendingData_ = subData; // pārdefinējam-pieķiram datu fragmentam vērtību
                 sorter.bubbleSortAscending(ascendingData_);//izsaucam iepriekš izveidoto sorteru un norādam uz šķirojamajiem datiem
                 double ascendingTime = measureSortingTime([&sorter, &ascendingData_]() {// izsaucam laika mērīšanas funkciju, lai nomērītu laiku cik ilgi proces aizņem
-                return sorter.bubbleSortAscending(ascendingData_);//atgriežam laika vērtību 
+                return sorter.bubbleSortAscending(ascendingData_);
                 });
 
-                // sliktākā (Decending datu) šīrošanas algoritms
+                // (Decending datu) šīrošanas algoritms
                 vector<string> descendingData_ = subData;
                 sorter.bubbleSortDescending(descendingData_);
                 double descendingTime = measureSortingTime([&sorter, &descendingData_]() {
-                    return sorter.bubbleSortDescending(descendingData_);
+                return sorter.bubbleSortDescending(descendingData_);
                 });
 
-                // vidēja (unsorted datu) šīrošanas algoritms
+                // (unsorted datu) šīrošanas algoritms
                 vector<string> unsortedData_ = subData;
                 double unsortedTime = measureSortingTime([&sorter, &unsortedData_]() {
-                    return sorter.bubbleSortAscending(unsortedData_);
+                return sorter.bubbleSortAscending(unsortedData_);
                 }); 
 
                 outputFile << size << "," << ascendingTime << "," << descendingTime << "," << unsortedTime << endl;// definējam datu kārtošanas struktūru failā
             }
         }
 
-        outputFile.close();//noslēdam failu
+        outputFile.close();//noslēdzam failu
     }
 
 private:
