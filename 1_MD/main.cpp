@@ -1,73 +1,107 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <algorithm>
 #include <string>
 #include <chrono>
-#include <ctime>
-#include <cstdlib>
-#include <functional>
 
 using namespace std;
 using namespace std::chrono;
 
+
+// klase sortēšanai izmantojama datu masīvu sortēšanai pēc nepieciešamības (izsaucot) gan Ascending gan Descending
+
 class CSVSorter {
 public:
-    CSVSorter(const vector<string>& data) : data_(data) {}
 
-    vector<string> sortAscending(vector<string>& data) {
-        vector<string> sortedData = data;
-        sort(sortedData.begin(), sortedData.end());
-        return sortedData;
+//Ascending datu masīvu sortēšanas algoritms
+    vector<string> bubbleSortAscending(vector<string>& data) {
+        int n = data.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (data[j] > data[j + 1]) {
+                    swap(data[j], data[j + 1]);
+                }
+            }
+        }
+        return data;
     }
 
-    vector<string> sortDescending(vector<string>& data) {
-        vector<string> sortedData = data;
-        sort(sortedData.rbegin(), sortedData.rend());
-        return sortedData;
+//Descending datu masīvu sortēšanas algoritms
+    vector<string> bubbleSortDescending(vector<string>& data) {
+        int n = data.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (data[j] < data[j + 1]) { // < lai apgrieztu visu algoritmu otrādi
+                    swap(data[j], data[j + 1]);
+                }
+            }
+        }
+        return data;
     }
-
-private:
-    vector<string> data_;
 };
+
+// klase sortēšananas uzdevuma veikšanai
 
 class CSVProcessor {
 public:
+// konstruktoras ar ievades faila nosaukumu un izvades faila nosaukumu
     CSVProcessor(const string& inputFileName, const string& outputFileName)
-        : inputFileName_(inputFileName), outputFileName_(outputFileName), sorter_(initialdata) {}
+        : inputFileName_(inputFileName), outputFileName_(outputFileName) {}
 
+//Pats aprēķinu un faila izveides process
     void process() {
-        ofstream outputFile(outputFileName_);
-        if (!outputFile.is_open()) {
+        ofstream outputFile(outputFileName_); // izveidojam CSV failu ar mūsu vēlamo nosaukumu
+        if (!outputFile.is_open()) {//pārbaudam vai veras vaļā, ja neveras izdodam paziņojumu par kļūdu
             cout << "Failed to create the output CSV file." << endl;
             return;
         }
 
-        outputFile << "n,Ascending Sorted Time (ms),Descending Sorted Time (ms),Unsorted Time (ms)" << endl;
+        outputFile << "n,Ascending Sorted Time (ms),Descending Sorted Time (ms),Unsorted Time (ms)" << endl; //izejas faila kollonu nosaukumi
 
-        if (readData()) {
-            vector<int> sizes = {10, 20, 50, 100, 200, 500, 1000, 2000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000};
+        if (readData()) {//ja fails atveras un dati lasās skatīt readdata algoritmu zem private sadaļas
+            vector<int> sizes = {10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000};//nosakam šķirošanas apjomus
 
-            for (int size : sizes) {
-                vector<string> subData(initialdata.begin(), initialdata.begin() + size);
+            CSVSorter sorter;
+            for (int size : sizes) {//uzsākam secīgu šķirošanas ciklu par parametriem izmantojot "Size"
+                vector<string> subData(initialData_.begin(), initialData_.begin() + size);// definējas datu apmēru (n)
 
-                double ascendingTime = measureSortingTime([this, &subData]() { return sorter_.sortAscending(subData); });
-                double descendingTime = measureSortingTime([this, &subData]() { return sorter_.sortAscending(subData); });
-                double unsortedTime = measureSortingTime([this, &subData]() { return sorter_.sortAscending(subData); });
+                // Labākā (Ascending datu) šīrošanas algoritms
+                vector<string> ascendingData_ = subData; // pārdefinējam-pieķiram datu fragmentam vērtību
+                sorter.bubbleSortAscending(ascendingData_);//izsaucam iepriekš izveidoto sorteru un norādam uz šķirojamajiem datiem
+                double ascendingTime = measureSortingTime([&sorter, &ascendingData_]() {// izsaucam laika mērīšanas funkciju, lai nomērītu laiku cik ilgi proces aizņem
+                return sorter.bubbleSortAscending(ascendingData_);//atgriežam laika vērtību 
+                });
 
-                outputFile << size << "," << ascendingTime << "," << descendingTime << "," << unsortedTime << endl;
+                // sliktākā (Decending datu) šīrošanas algoritms
+                vector<string> descendingData_ = subData;
+                sorter.bubbleSortDescending(descendingData_);
+                double descendingTime = measureSortingTime([&sorter, &descendingData_]() {
+                    return sorter.bubbleSortDescending(descendingData_);
+                });
+
+                // vidēja (unsorted datu) šīrošanas algoritms
+                vector<string> unsortedData_ = subData;
+                double unsortedTime = measureSortingTime([&sorter, &unsortedData_]() {
+                    return sorter.bubbleSortAscending(unsortedData_);
+                }); 
+
+                outputFile << size << "," << ascendingTime << "," << descendingTime << "," << unsortedTime << endl;// definējam datu kārtošanas struktūru failā
             }
         }
 
-        outputFile.close();
+        outputFile.close();//noslēdam failu
     }
 
 private:
+//definējam 
     string inputFileName_;
     string outputFileName_;
-    vector<string> initialdata;
-    CSVSorter sorter_;
+    vector<string> initialData_;
+    vector<string> ascendingData_;
+    vector<string> descendingData_;
+    vector<string> unsortedData_;
 
+// faila atvēršanas un nolasīšanas/pārbaudes algoritms
     bool readData() {
         ifstream file(inputFileName_);
         if (!file.is_open()) {
@@ -77,13 +111,24 @@ private:
 
         string line;
         while (getline(file, line)) {
-            initialdata.push_back(line);
+            initialData_.push_back(line);
         }
         file.close();
+
+        // izveidoju datu masīvus kurus tālāk lietot;
+        CSVSorter ascendingData_;
+        ascendingData_.bubbleSortAscending(initialData_);
+
+        CSVSorter descendingData_;
+        descendingData_.bubbleSortDescending(initialData_);
+
+        unsortedData_ = initialData_;
 
         return true;
     }
 
+
+    //Laika uzskaites algoritms milisekundēs tiek lietots pie laika uzskaites
     template <typename SortFunction>
     double measureSortingTime(SortFunction sortFunction) {
         high_resolution_clock::time_point startTime = high_resolution_clock::now();
@@ -95,7 +140,7 @@ private:
 };
 
 int main() {
-    CSVProcessor processor("initial_data.csv", "output_data.csv");
+    CSVProcessor processor("initial_data.csv", "output_data1.csv");
     processor.process();
 
     return 0;
