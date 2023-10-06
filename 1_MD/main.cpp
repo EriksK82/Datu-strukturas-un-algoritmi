@@ -127,7 +127,6 @@ private:
         return true;
     }
 
-
     //Laika uzskaites algoritms milisekundēs tiek lietots pie laika uzskaites
     template <typename SortFunction>
     double measureSortingTime(SortFunction sortFunction) {
@@ -140,8 +139,11 @@ private:
 };
 
 int main() {
-    CSVProcessor processor("initial_data.csv", "output_data1.csv");
-    processor.process();
+    CSVProcessor processor("initial_data.csv", "output_data.csv");//ievadu izejas datus un vēlamo izejas faila nosaukumu
+    processor.process();//palaižu šķirošanas procesu
+
+    //// tādus var likt cik nepieciešams ar daždiem sākotnējo datu faila nosaukumiem un izejas datu nosaukumiem............
+
 
     return 0;
 }
