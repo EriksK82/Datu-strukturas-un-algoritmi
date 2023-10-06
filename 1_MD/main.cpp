@@ -67,16 +67,14 @@ public:
 
                 // (Ascending datu) šīrošanas algoritms
                 vector<string> ascendingData_ = subData; // pārdefinējam-pieķiram datu fragmentam vērtību
-                sorter.bubbleSortAscending(ascendingData_);//izsaucam iepriekš izveidoto sorteru un norādam uz šķirojamajiem datiem
                 double ascendingTime = measureSortingTime([&sorter, &ascendingData_]() {// izsaucam laika mērīšanas funkciju, lai nomērītu laiku cik ilgi proces aizņem
-                return sorter.bubbleSortAscending(ascendingData_);
+                return sorter.bubbleSortAscending(ascendingData_);// izsaucam iepriekš izveidoto sorteru un norādam uz šķirojamajiem datiem
                 });
 
                 // (Decending datu) šīrošanas algoritms
                 vector<string> descendingData_ = subData;
-                sorter.bubbleSortDescending(descendingData_);
                 double descendingTime = measureSortingTime([&sorter, &descendingData_]() {
-                return sorter.bubbleSortDescending(descendingData_);
+                return sorter.bubbleSortAscending(descendingData_);
                 });
 
                 // (unsorted datu) šīrošanas algoritms
