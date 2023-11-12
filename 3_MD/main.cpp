@@ -1,208 +1,224 @@
-#include <algorithm>  // Add this line for find_if
 #include <iostream>
 #include <vector>
+#include <map>
+#include <algorithm>
 #include <sstream>
-#include <climits>
+#include <string>
 
 using namespace std;
 
-// TreeNode class to represent each node in the tree
+// Apzīmē mezglu kokā
 class TreeNode {
 public:
     int id;
     int parentId;
     string name;
-    string type; // "d" for directory, "f" for file
+    string type;
+    vector<TreeNode*> children;
 
-    // Constructor
+    // Konstruktors mezgla inicializācijai
     TreeNode(int id, int parentId, const string& name, const string& type)
         : id(id), parentId(parentId), name(name), type(type) {}
+
+    // Destruktors, lai atbrīvotu piešķirto atmiņu
+    ~TreeNode() {
+        for (TreeNode* child : children) {
+            delete child;
+        }
+    }
 };
 
-// Tree class to manage the tree structure
+// Apzīmē koka struktūru
 class Tree {
 private:
-    vector<TreeNode> nodes;
+    TreeNode* root;
+    map<int, TreeNode*> nodeMap;
 
 public:
-    // Method to add a new node to the tree
-    void addNode(int nodeId, int parentId, const string& nodeName, const string& nodeType) {
-        // Check if the node with the given id already exists
-        auto it = find_if(nodes.begin(), nodes.end(), [nodeId](const TreeNode& node) {
-            return node.id == nodeId;
-        });
+    // Konstruktors koka inicializācijai
+    Tree() : root(nullptr) {}
 
-        // If the node exists and its type matches, replace it; otherwise, report an error
-        if (it != nodes.end()) {
-            if (it->type == nodeType) {
-                it->parentId = parentId;
-                it->name = nodeName;
+    // Destruktors, lai atbrīvotu piešķirto atmiņu
+    ~Tree() {
+        delete root;
+    }
+
+    // Pievienojiet kokam jaunu mezglu
+    void addNode(int id, int parentId, const string& name, const string& type) {
+        TreeNode* newNode = new TreeNode(id, parentId, name, type);
+        nodeMap[id] = newNode;
+
+        if (parentId == -1) {
+            root = newNode;
+        } else {
+            TreeNode* parent = nodeMap[parentId];
+            if (parent) {
+                parent->children.push_back(newNode);
             } else {
-                cout << "Error: Node with ID " << nodeId << " already exists, but with a different type." << endl;
+                cerr << "Error: Parent node with ID " << parentId << " not found.\n";
+                delete newNode;
             }
-        } else {
-            // If the node doesn't exist, add it to the tree
-            nodes.emplace_back(nodeId, parentId, nodeName, nodeType);
         }
     }
 
-    // Method to delete a node by its ID
-    void deleteNode(int nodeId) {
-        auto it = find_if(nodes.begin(), nodes.end(), [nodeId](const TreeNode& node) {
-            return node.id == nodeId;
-        });
-
-        if (it != nodes.end()) {
-            // If the node is not a leaf, delete the entire branch using a recursive algorithm
-            if (it->type == "d") {
-                deleteBranch(nodeId);
+    // Izdzēsiet mezglu no koka
+    void deleteNode(int id) {
+        if (nodeMap.find(id) != nodeMap.end()) {
+            TreeNode* node = nodeMap[id];
+            if (node->parentId != -1) {
+                TreeNode* parent = nodeMap[node->parentId];
+                auto it = remove_if(parent->children.begin(), parent->children.end(),
+                                    [id](TreeNode* child) { return child->id == id; });
+                parent->children.erase(it, parent->children.end());
+            } else {
+                delete root;
+                root = nullptr;
             }
-
-            // Remove the node from the vector
-            nodes.erase(it);
+            delete node;
+            nodeMap.erase(id);
         } else {
-            cout << "Error: Node with ID " << nodeId << " not found." << endl;
+            cerr << "Error: Node with ID " << id << " not found.\n";
         }
     }
 
-    // Method to display the tree branch starting from a given ID
-    void displayBranch(int nodeId, int level = 0) {
-        auto it = find_if(nodes.begin(), nodes.end(), [nodeId](const TreeNode& node) {
-            return node.id == nodeId;
-        });
-
-        if (it != nodes.end()) {
-            // Display the node information
-            for (int i = 0; i < level; ++i) {
-                cout << "  ";
-            }
-            cout << it->type << " (" << it->id << ") - " << it->name << endl;
-
-            // Recursively display the sub-nodes
-            for (const auto& node : nodes) {
-                if (node.parentId == nodeId) {
-                    displayBranch(node.id, level + 1);
-                }
-            }
+    // DParādiet zarotni, sākot no noteikta mezgla
+    void displayBranch(int id) {
+        if (nodeMap.find(id) != nodeMap.end()) {
+            displayBranchHelper(nodeMap[id], 0);
         } else {
-            cout << "Error: Node with ID " << nodeId << " not found." << endl;
+            cerr << "Error: Node with ID " << id << " not found.\n";
         }
     }
 
-    // Method to display the entire tree
+    // Parādīt visu koku
     void displayTree() {
-        for (const auto& node : nodes) {
-            if (node.parentId == -1) {
-                displayBranch(node.id);
-            }
+        if (root) {
+            displayBranchHelper(root, 0);
+        } else {
+            cout << "The tree is empty.\n";
         }
     }
 
 private:
-    // Recursive method to delete the entire branch starting from a given ID
-    void deleteBranch(int nodeId) {
-        auto it = find_if(nodes.begin(), nodes.end(), [nodeId](const TreeNode& node) {
-            return node.id == nodeId;
-        });
+    // Palīdzības funkcija, lai parādītu zarošanos 
+    void displayBranchHelper(TreeNode* node, int depth) {
+        for (int i = 0; i < depth; ++i) {
+            cout << "  ";
+        }
 
-        if (it != nodes.end()) {
-            // Recursively delete sub-nodes
-            for (auto iter = nodes.begin(); iter != nodes.end();) {
-                if (iter->parentId == nodeId) {
-                    deleteBranch(iter->id);
-                    iter = nodes.erase(iter);
-                } else {
-                    ++iter;
-                }
-            }
+        // Rādīt mezgla veidu un informāciju
+        if (node->type == "directory") {
+            cout << "Folder";
+        } else if (node->type == "file") {
+            cout << "File";
+        } else {
+            cout << "Unknown";
+        }
+
+        cout << " (" << node->id << ") - " << node->name << "\n";
+
+        // parādīt pakārtotos (bērnus)
+        for (TreeNode* child : node->children) {
+            displayBranchHelper(child, depth + 1);
         }
     }
 };
 
-// Function to display command line usage guide
-void displayUsage() {
-    cout << "Command line usage:" << endl;
-    cout << "h: Display usage guide." << endl;
-    cout << "+id,parent_id,name,type: Add a new node to the node with a certain identifier 'parent_id'." << endl;
-    cout << "-id: Delete the node with the given 'id'." << endl;
-    cout << "*id: Display the tree branch starting from the 'id' node." << endl;
-    cout << "*: Display the entire tree." << endl;
-    cout << "$: End the program." << endl;
-}
-
+// Galvenā funkcija programmas palaišanai
 int main() {
     Tree fileSystem;
 
-    displayUsage();
-    
-    char command;
-    do {
-        cout << "Enter command: ";
-        cin >> command;
+    //Komandas ievades pārbaude
+    while (true) {
+        cout << "Enter command (h for help): ";
+        string command;
+        getline(cin, command);
 
-        switch (command) {
+        if (command.empty()) {
+            cerr << "Error: Empty command.\n";
+            continue;
+        }
+        //Ja ievade ir komanda tad...
+        istringstream iss(command);
+        char action;
+        iss >> action;
+
+        switch (action) {
             case 'h':
-                displayUsage();
+                // Parādīt komandu lietošanas rokasgrāmatu
+                cout << "Commands:\n";
+                cout << "h[Enter] - Application command line usage guide.\n";
+                cout << "+id,high_level_node_id,name,type[Enter] - Add a new node.\n";
+                cout << "-id[Enter] - Delete the node with the given ID.\n";
+                cout << "*id[Enter] - Display the tree branch starting from the node with ID.\n";
+                cout << "*[Enter] - Display the entire tree.\n";
+                cout << "$[Enter] - End the program.\n";
                 break;
-            case '+': {
-                int id, parentId;
-                string name, type;
-                char comma;
-                cin >> id >> comma >> parentId >> comma >> name >> comma >> type;
 
-                // Error handling
-                if (name.empty() || type.empty() || (type != "d" && type != "f")) {
-                    cout << "Error: Invalid input for adding a node." << endl;
-                } else {
+            case '+':
+                // Pievienot jaunu mezglu
+                {
+                    int id, parentId;
+                    string name, type;
+                    char comma;
+
+                    iss >> id >> comma >> parentId >> comma;
+                    getline(iss, name, ',');
+                    iss >> type;
+
+                    if (name.empty()) {
+                        cerr << "Error: Node name is empty.\n";
+                        break;
+                    }
+
+                    if (type != "directory" && type != "file") {
+                        cerr << "Error: Invalid node type. Use 'directory' or 'file'.\n";
+                        break;
+                    }
+
                     fileSystem.addNode(id, parentId, name, type);
                 }
                 break;
-            }
-            case '-': {
-                int id;
-                cin >> id;
 
-                // Error handling
-                if (cin.fail()) {
-                    cin.clear();
-                    cin.ignore(INT_MAX, '\n');
-                    cout << "Error: Invalid input for deleting a node." << endl;
-                } else {
+            case '-':
+                // Izdzēst mezglu
+                {
+                    int id;
+                    iss >> id;
                     fileSystem.deleteNode(id);
                 }
                 break;
-            }
-            case '*': {
-                char optionalId;
-                int id;
-                cin >> optionalId;
 
-                if (optionalId == '\n') {
+            case '*':
+                // Parādīt koku vai zarojumu
+                if (iss.peek() == '\n' || iss.peek() == EOF) {
                     fileSystem.displayTree();
                 } else {
-                    cin.unget();  // Put back the character for further processing
-                    cin >> id;
-
-                    // Error handling
-                    if (cin.fail()) {
-                        cin.clear();
-                        cin.ignore(INT_MAX, '\n');
-                        cout << "Error: Invalid input for displaying a branch." << endl;
-                    } else {
-                        fileSystem.displayBranch(id);
-                    }
+                    int id;
+                    iss >> id;
+                    fileSystem.displayBranch(id);
                 }
                 break;
-            }
-            case '$':
-                cout << "Program ended." << endl;
-                break;
-             default:
-                cout << "Error: Unknown command. Enter a valid command." << endl;
-        }
 
-        cin.ignore(INT_MAX, '\n');  // Clear the input buffer
-    } while (command != '$');
+            case '$':
+                // izbeigt programmu
+                return 0;
+
+            default:
+                cerr << "Error: Unknown command.\n";
+                break;
+        }
+    }
 
     return 0;
 }
+
+// testējamas ievades.
+// +1,-1,Root,directory
+// +2,1,Documents,directory
+// +3,1,Images,directory
+// +4,2,TextFiles,directory
+// +5,2,SpreadsheetFiles,directory
+// +6,3,SummerVacation.jpg,file
+// +7,4,ImportantDoc.txt,file
+// +8,5,Budget.xlsx,file
