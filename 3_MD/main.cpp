@@ -148,7 +148,7 @@ int main() {
                 // Parādīt komandu lietošanas rokasgrāmatu
                 cout << "Commands:\n";
                 cout << "h[Enter] - Application command line usage guide.\n";
-                cout << "+id,high_level_node_id,name,type[Enter] - Add a new node.\n";
+                cout << "+id,high_level_node_id,name,type[Enter] - Add a new node. - examples - +1,-1,Root,directory; +3,1,Images,directory \n";
                 cout << "-id[Enter] - Delete the node with the given ID.\n";
                 cout << "*id[Enter] - Display the tree branch starting from the node with ID.\n";
                 cout << "*[Enter] - Display the entire tree.\n";
