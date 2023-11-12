@@ -1,106 +1,162 @@
-//https://www.geeksforgeeks.org/introduction-to-circular-queue/
-
 #include <iostream>
+#include <climits> 
+#include <sstream>
 
 using namespace std;
 
-class FIFO {
+// RowElement klase, lai attēlotu punktu ar x un y koordinātām
+class RowElement {
+public:
+    int x;
+    int y;
+
+    // Constructors
+    RowElement() : x(0), y(0) {}
+    RowElement(int x, int y) : x(x), y(y) {}
+};
+
+// Queue klase punktu līnijas pārvaldīšanai
+class Queue {
 private:
-    int** elements;
-    int front;
-    int rear;
-    int length;
+    RowElement* elements;  // Apļveida masīvs elementu glabāšanai
+    int maxSize;          // Maksimālais garums
+    int front;            // Rindas priekšpuses rādītājs(Index)
+    int rear;             // Rindas aizmugures rādītājs(Index)
+    int currentSize;      // Pašreizējais elementu skaits rindā
 
 public:
-    FIFO(int len) {
-        length = len;
-        elements = new int*[length];
-        for (int i = 0; i < length; ++i)
-            elements[i] = new int[2]; 
-
-        front = -1;
-        rear = -1;
+    // Constructors lai iestatītu maksimālo līnijas garumu
+    Queue(int size) : maxSize(size), front(-1), rear(-1), currentSize(0) {
+        elements = new RowElement[maxSize];
     }
 
-    void enqueue(int x, int y) {
-        if ((rear + 1) % length == front) {
-            cout << "Queue is full. Cannot enqueue element.\n";
-            return;
-        }
-
-        if (front == -1)
-            front = 0;
-
-        rear = (rear + 1) % length;
-        elements[rear][0] = x;
-        elements[rear][1] = y;
-    }
-
-    void dequeue() {
-        if (front == -1) {
-            cout << "Queue is empty. Cannot dequeue element.\n";
-            return;
-        }
-
-        cout << "Dequeued: (" << elements[front][0] << ", " << elements[front][1] << ")\n";
-
-        if (front == rear) {
-            front = -1;
-            rear = -1;
-        } else {
-            front = (front + 1) % length;
-        }
-    }
-
-    void display() {
-        if (front == -1) {
-            cout << "Queue is empty.\n";
-            return;
-        }
-
-        cout << "Queue elements:\n";
-        int i = front;
-        while (i != rear) {
-            cout << "(" << elements[i][0] << ", " << elements[i][1] << ")\n";
-            i = (i + 1) % length;
-        }
-        cout << "(" << elements[i][0] << ", " << elements[i][1] << ")\n";
-    }
-
-    ~FIFO() {
-        for (int i = 0; i < length; ++i)
-            delete[] elements[i];
+    // Destructors lai atbrīvotu piešķirto atmiņu
+    ~Queue() {
         delete[] elements;
+    }
+
+    // Push metode lai rindā ievietotu elementu
+    void push(int x, int y) {
+        if (isFull()) {
+            cout << "Overflow: Queue is full." << endl;
+            return;
+        }
+
+        rear = (rear + 1) % maxSize;
+        elements[rear] = RowElement(x, y);
+        if (front == -1) {
+            front = rear;
+        }
+
+        currentSize++;
+    }
+
+    // Pop metode lai noņemtu un atgrieztu elementu no rindas
+    RowElement pop() {
+        if (isEmpty()) {
+            cout << "Underflow: Queue is empty." << endl;
+            return RowElement();  // Atgriezt pēc noklusējuma izveidoto RowElement, ja rinda nav pilna
+        }
+
+        RowElement popped = elements[front];
+        if (front == rear) {
+            front = rear = -1;
+        } else {
+            front = (front + 1) % maxSize;
+        }
+
+        currentSize--;
+        return popped;
+    }
+
+    // Show metode attēlo rindu kā punktu virkni 
+    void show() {
+        if (isEmpty()) {
+            cout << " Queue is empty." << endl;
+            return;
+        }
+
+        int index = front;
+        do {
+            cout << "{" << elements[index].x << ", " << elements[index].y << "} ";
+            index = (index + 1) % maxSize;
+        } while (index != (rear + 1) % maxSize);
+
+        cout << endl;
+    }
+
+    // Pārbaude vai rinda ir pilna
+    bool isFull() {
+        return currentSize == maxSize;
+    }
+
+    // Pārbaude vai rinda ir tukša
+    bool isEmpty() {
+        return currentSize == 0;
     }
 };
 
+// Funkcija, lai parādītu komandrindas lietošanas rokasgrāmatu
+void displayUsage() {
+    cout << "Command line usage:" << endl;
+    cout << "h: Display usage guide." << endl;
+    cout << "+x,y: Insert point coordinates into the line. example +4,5" << endl;
+    cout << "-: Remove an element from the queue and display it on the screen." << endl;
+    cout << "*: Display the line on the screen." << endl;
+    cout << "$: End the program." << endl;
+}
+
 int main() {
+    int maxSize;
+    cout << "Enter the maximum length of the line: ";
+    cin >> maxSize;
 
-   cout<<"teksts"<<endl;
+displayUsage();
 
-      
-    FIFO fifo(5);
+    Queue line(maxSize);
 
-    fifo.enqueue(1, 2);
-    fifo.enqueue(3, 4);
-    fifo.enqueue(5, 6);
-    fifo.display();
+    char command;
+    do {
+        cout << "Enter command: ";
+        
+        cin >> command;
 
-    fifo.dequeue();
-    fifo.display();
+        switch (command) {
+            case 'h':
+                displayUsage();
+                break;
+            case '+': {
+                int x, y;
+                char comma;
+                cin >> x >> comma >> y;
 
-    fifo.enqueue(7, 8);
-    fifo.enqueue(9, 10);
-    fifo.display();
+                if (cin.fail() || comma != ',') {
+                    cin.clear();
+                    cin.ignore(INT_MAX, '\n');
+                    cout << "Error: Incorrect value. Enter valid coordinates." << endl;
+                } else {
+                    line.push(x, y);
+                }
+                break;
+            }
+            case '-': {
+                RowElement popped = line.pop();
+                if (popped.x != 0) {
+                    cout << "Popped: {" << popped.x << ", " << popped.y << "}" << endl;
+                }
+                break;
+            }
+            case '*':
+                line.show();
+                break;
+            case '$':
+                cout << "Program ended." << endl;
+                break;
+             default:
+                 cout << "Error: Unknown command. Enter a valid command." << endl;
+        }
 
-    fifo.dequeue();
-    fifo.display();
-
-    fifo.enqueue(11, 12);
-    fifo.display();
-
-    fifo.enqueue(13, 14);
-    fifo.display();
+    } while (command != '$');
 
     return 0;
 }
