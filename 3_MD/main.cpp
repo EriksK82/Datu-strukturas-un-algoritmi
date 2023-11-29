@@ -61,7 +61,7 @@ public:
         }
     }
 
-    // Izdzēsiet mezglu no koka
+    // Izdzēst mezglu no koka
     void deleteNode(int id) {
         if (nodeMap.find(id) != nodeMap.end()) {
             TreeNode* node = nodeMap[id];
@@ -81,7 +81,7 @@ public:
         }
     }
 
-    // DParādiet zarotni, sākot no noteikta mezgla
+    // parādīt zarotni, sākot no noteikta mezgla
     void displayBranch(int id) {
         if (nodeMap.find(id) != nodeMap.end()) {
             displayBranchHelper(nodeMap[id], 0);
