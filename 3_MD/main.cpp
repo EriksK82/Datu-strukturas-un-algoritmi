@@ -128,6 +128,25 @@ private:
 int main() {
     Tree fileSystem;
 
+    //Demo koks
+    // ievades piemērs konsole:
+        // +1,-1,Root,directory
+        // +2,1,Documents,directory
+        // +3,1,Images,directory
+        // +4,2,TextFiles,directory
+        // +5,2,SpreadsheetFiles,directory
+        // +6,3,SummerVacation.jpg,file
+        // +7,4,ImportantDoc.txt,file
+        // +8,5,Budget.xlsx,file
+    fileSystem.addNode(+1,-1,"Root","directory");
+    fileSystem.addNode(+2,1,"Documents","directory");
+    fileSystem.addNode(+3,1,"Images","directory");
+    fileSystem.addNode(+4,2,"TextFiles","directory");
+    fileSystem.addNode(+5,2,"SpreadsheetFiles","directory");
+    fileSystem.addNode(+6,3,"SummerVacation.jpg","file");
+    fileSystem.addNode(+7,4,"ImportantDoc.txt","file");
+    fileSystem.addNode(+8,5,"Budget.xlsx","file");
+
     //Komandas ievades pārbaude
     while (true) {
         cout << "Enter command (h for help): ";
@@ -213,12 +232,3 @@ int main() {
     return 0;
 }
 
-// testējamas ievades.
-// +1,-1,Root,directory
-// +2,1,Documents,directory
-// +3,1,Images,directory
-// +4,2,TextFiles,directory
-// +5,2,SpreadsheetFiles,directory
-// +6,3,SummerVacation.jpg,file
-// +7,4,ImportantDoc.txt,file
-// +8,5,Budget.xlsx,file
